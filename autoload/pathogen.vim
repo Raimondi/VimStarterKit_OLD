@@ -113,12 +113,42 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
       let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
     endif
   endfor
+  call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list 
   let &rtp = pathogen#join(pathogen#uniq(list))
   return 1
 endfunction
 
 let s:done_bundles = ''
 " }}}1
+
+" Return 1 if plugin dir name is key of the dictionary s:DisabledPluginDict.
+function! s:IsDisabledPlugin(path) " {{{
+  if !exists("s:DisabledPluginDict")
+    let s:DisabledPluginDict = {}
+    for plugname in s:DisabledPlugin
+      let s:DisabledPluginDict[plugname] = 1
+    endfor
+  endif
+
+  let plugname = a:path =~# "after$"
+        \ ? fnamemodify(a:path, ":h:t")
+        \ : fnamemodify(a:path, ":t")
+
+  return has_key(s:DisabledPluginDict, plugname)
+endfunction
+" }}}
+
+" Shoud be called first in .vimrc so that user can use DisablePlugin command.
+function! pathogen#init() " {{{
+  let s:DisabledPlugin = []
+
+  function! s:DisablePlugin(...)
+    let s:DisabledPlugin = s:DisabledPlugin +  a:000
+  endfunction
+
+  command! -nargs=+ DisablePlugin :call <SID>DisablePlugin(<f-args>)
+endfunction
+" }}}
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
 function! pathogen#helptags() " {{{1
