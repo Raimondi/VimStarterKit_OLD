@@ -121,24 +121,16 @@ endfunction
 let s:done_bundles = ''
 " }}}1
 
-" Return 1 if plugin dir name is key of the dictionary s:DisabledPluginDict.
+" chack if plugin is disabled of not
 function! s:IsDisabledPlugin(path) " {{{
-  if !exists("s:DisabledPluginDict")
-    let s:DisabledPluginDict = {}
-    for plugname in s:DisabledPlugin
-      let s:DisabledPluginDict[plugname] = 1
-    endfor
-  endif
-
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-
-  return has_key(s:DisabledPluginDict, plugname)
+  return count(s:DisabledPlugin, plugname)
 endfunction
 " }}}
 
-" Shoud be called first in .vimrc so that user can use DisablePlugin command.
+" consolidate initial setup as function not for clarification
 function! pathogen#init() " {{{
   let s:DisabledPlugin = []
 
