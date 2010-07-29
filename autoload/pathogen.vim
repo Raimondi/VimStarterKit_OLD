@@ -11,6 +11,10 @@ if exists("g:loaded_pathogen") || &cp
 endif
 let g:loaded_pathogen = 1
 
+if !exists("g:pathogen_disabled")
+  let g:pathogen_disabled = []
+endif
+
 " Split a path into a list.
 function! pathogen#split(path) abort " {{{1
   if type(a:path) == type([]) | return a:path | endif
@@ -126,19 +130,7 @@ function! s:IsDisabledPlugin(path) " {{{
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-  return count(s:DisabledPlugin, plugname)
-endfunction
-" }}}
-
-" consolidate initial setup as function not for clarification
-function! pathogen#init() " {{{
-  let s:DisabledPlugin = []
-
-  function! s:DisablePlugin(...)
-    let s:DisabledPlugin = s:DisabledPlugin +  a:000
-  endfunction
-
-  command! -nargs=+ DisablePlugin :call <SID>DisablePlugin(<f-args>)
+  return count(g:pathogen_disabled, plugname)
 endfunction
 " }}}
 
