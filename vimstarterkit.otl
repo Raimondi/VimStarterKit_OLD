@@ -1,0 +1,91 @@
+Vim Starter Kit
+	Goal
+		: To provide a good Vim Build + Vimrc + Plugins + Plugin Manager +
+		: Documentation to introduce newcomers to Vim in the best possible
+		: way.
+	Motivations
+		: "Part of why it took me so long to 'get' vim is the defaults. Vim
+		: has *A LOT* of shortfalls and I didn't know of a good vimrc for my
+		: needs."
+		:
+		: "I didn't like the help when I started, I used mostly google."
+		:
+		: "What you should be able to do is jump in and use Vim as you
+		: would nano or gedit, and then slowly add to that with text-objects
+		: and cool movement and text manipulation stuff."
+	Typical User
+		Somebody switching from nano or a gui text editor
+	Ground Rules
+		No favouring of specific languages or version control systems
+	Vim Build
+		XXX Do we bother building a Vim for this project, or are the standard binaries / packaged versions sufficient?
+		: Debian's default (vim-tiny) is attrocious, and I hear Fedora's is
+		: just as crappy.
+		Configure:
+		Sign off on each of the following:
+		: You can use vimoutliner's checkbox feature (<leader>cb and
+		: <leader>cx) to add a checkbox and tick it.
+			--prefix=/usr
+			--localstatedir=/var/lib/vim
+			--mandir=/usr/share/man
+			--with-compiledby=VimStarterKit
+			--with-features=big
+			--enable-gpm
+			--enable-acl
+			--with-x=yes
+			--disable-gui
+				Really? I think we *should* build a GUI Vim by default
+			--enable-multibyte
+			--enable-cscope
+			--enable-perlinterp
+			--enable-pythoninterp
+			--enable-rubyinterp
+	Colorscheme
+		Default (light)
+		: The default is pretty good to begin with, and not worrying about
+		: it removes a layer of complexity from the project.
+		:
+		: Taste in colours is purely subjective.
+		:
+		: Light because that's what most GUI editors have / start with by
+		: default.
+		Links in the documentation to colourscheme sampler sites and doco on how to download and install them
+		: XXX: Make installing colorschemes a part of our plugin manager?
+	Vimrc
+		Basically the one from LearnVim with some fine adjustments
+			Probably absorb those adjustments back into LearnVim
+		Suggested Alterations:
+			set cpoptions+=$
+				bairui disagrees with this - it's the old vi way and would be surprising to newcomers
+			set whichwrap=<,>,[,],b,s
+	Plugins
+		Installed
+			TagList
+			SecureModeLines
+			BufExplorer
+			NERDTree
+			Pathogen
+			Surround
+			Repeat
+			Matchit
+		Recommended Additional Plugins
+		: Available (installed) but not enabled by default
+			CSApprox
+			NERDCommenter?
+			SnipMate
+			XTemplate
+			VimOutliner (with checkboxes)
+	Plugin Manager
+		Based on Pathogen
+			XXX Should we investigate vim-addon-manager as an alternative plugin manager?
+		Enhanced to:
+			Make updates easier
+			List / Enable / Disable plugins easily
+	Documentation
+		Based on LearnVim (favours Reading learners, with exercises for Kinesthetic learners)
+		: Possibly bundle LV with VSK, or a modified derivative (Just the
+		: Beginner section?)
+		Additional docs on dis/en-abling plugins (using our Pathogen+ plugin manager)
+		Possibly additional resources in other media formats:
+			Peepcode's and Derek Wyatt's Screencasts for visual learners
+			Podcast for auditory learners
