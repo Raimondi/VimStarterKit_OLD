@@ -117,7 +117,7 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
       let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
     endif
   endfor
-  call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list 
+  call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
   return 1
 endfunction
@@ -125,12 +125,12 @@ endfunction
 let s:done_bundles = ''
 " }}}1
 
-" chack if plugin is disabled of not
+" check if plugin is disabled of not
 function! s:IsDisabledPlugin(path) " {{{
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-  return count(g:pathogen_disabled, plugname)
+  return count(g:pathogen_disabled, plugname,1)
 endfunction
 " }}}
 
