@@ -1,11 +1,22 @@
-"exec 'set runtimepath+=' . expand('~/.vim/bundle/vim-addon-manager')
-"call scriptmanager#Activate(['yaifa','https://Raimondi@github.com/Raimondi/vim-pathogen.git'])
-
 " If this is on, it might interfere with pathogen:
 filetype off
 
 " Let pathogen perform its magic:
 exec 'set runtimepath+=' . expand('~/.vim/bundle/vim-pathogen')
+
+" Disabled plugins:
+let pathogen_disabled = []
+" -CSApprox
+let pathogen_disabled += ['csapprox']
+" -NERDCommenter
+let pathogen_disabled += ['nerdcommenter']
+" -SnipMate
+let pathogen_disabled += ['snipmate']
+" -VimOutliner
+let pathogen_disabled += ['vimoutliner']
+" -delimitMate
+let pathogen_disabled += ['delimitMate']
+
 call pathogen#runtime_append_all_bundles()
 
 set nocompatible " NEVER change this! Use Vim mode, not vi mode.
@@ -48,10 +59,13 @@ set showcmd " Show (partial) command in status line.
 set laststatus=2 " Always show a status line
 set cmdheight=2 " Prevent "Press Enter" message after most commands
 " Show detailed information in status line
-set statusline=%f%#error#%m%*%r%h%w\ [%n:%{&ff}/%Y]%=[0x\%04.4B][%03v][%p%%\ line\ %l\ of\ %L]
+"set statusline=%f%#error#%m%*%r%h%w\ [%n:%{&ff}/%Y]%=[0x\%04.4B][%03v][%p%%\ line\ %l\ of\ %L]
+runtime stl_bloated.vim
+"set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [BUF=\#%n]\ [POS=%04l,%04v]\ [%p%%]\ [LEN=%L]
+"set statusline=%f%m%r%h%w\ [%n:%{&ff}/%Y]%=[0x\%04.4B][%03v][%p%%\ line\ %l\ of\ %L]
 
 " Interface Options:
-set background=light "Use a light background
+"set background=dark "Use a dark background
 set number " Display line numbers at left of screen
 set visualbell " Flash the screen instead of beeping on errors
 set t_vb= " And then disable even the flashing
@@ -100,8 +114,37 @@ if has("autocmd")
     " Remove ALL autocommands for the current group.
     autocmd!
 
+    " Enable omni-completion by default
+    if has("autocmd") && exists("+omnifunc")
+        autocmd Filetype *
+                \   if &omnifunc == "" |
+                \       setlocal omnifunc=syntaxcomplete#Complete |
+                \   endif
+    endif
+
+    " Enable extended % matching
+    au VimEnter * au FileType * if !exists("b:match_words")
+            \ | let b:match_words = &matchpairs | endif
+
     " Jump to last-known-position when editing files
     " Note: The | character is used in Vim as a command separator (like ; in C)
     au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
   augroup END
 endif
+
+""""""""""""
+" Functions
+""""""""""""
+"
+function! MyFoldText()
+    let line = getline(v:foldstart)
+    let sub = substitute(line, '/\*\|\*/\|{{{\d\=', '', 'g')
+    return v:folddashes . sub
+endfunction
+
+"""""""""""""""""""
+" Plugins settings
+"""""""""""""""""""
+
+" Enable extended % matching
+runtime macros/matchit.vim
