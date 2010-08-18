@@ -2,10 +2,11 @@
 filetype off
 
 " Let pathogen perform its magic:
-exec 'set runtimepath+=' . expand('~/.vim/bundle/vim-pathogen')
+exec 'set runtimepath+=' . expand('~/.vim/bundle/pathogen')
 
 " Disabled plugins:
 let pathogen_disabled = []
+" To enable one of this plugins, just comment out the corresponding line:
 " -CSApprox
 let pathogen_disabled += ['csapprox']
 " -NERDCommenter
@@ -16,6 +17,8 @@ let pathogen_disabled += ['snipmate']
 let pathogen_disabled += ['vimoutliner']
 " -delimitMate
 let pathogen_disabled += ['delimitMate']
+" -YAIFA
+let pathogen_disabled += ['yaifa']
 
 call pathogen#runtime_append_all_bundles()
 
@@ -63,6 +66,8 @@ set cmdheight=2 " Prevent "Press Enter" message after most commands
 runtime stl_bloated.vim
 "set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [BUF=\#%n]\ [POS=%04l,%04v]\ [%p%%]\ [LEN=%L]
 "set statusline=%f%m%r%h%w\ [%n:%{&ff}/%Y]%=[0x\%04.4B][%03v][%p%%\ line\ %l\ of\ %L]
+" Default status line:
+"set statusline&
 
 " Interface Options:
 "set background=dark "Use a dark background
@@ -78,6 +83,15 @@ set tabstop=8 " NEVER change this!
 " Change the '2' value below to your preferred indentation level
 set shiftwidth=2 softtabstop=2 " Number of spaces for each indent level
 set expandtab " Even when pressing <Tab>
+
+" Persistent undo:
+if has('persistent_undo')
+    set undofile
+endif
+
+if has('gui_macvim')
+  set fuoptions=maxvert,maxhorz " Full-screen mode uses the full screen
+endif
 
 """""""
 " Maps
