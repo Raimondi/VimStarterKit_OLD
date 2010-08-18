@@ -1,0 +1,3 @@
+"Do you want to use Terminal Vim (in addition to the GUI version which is available by default)?: "
+  and then, if yes
+  "Is your terminal background light or dark? (Open a terminal now to check if you don't know):

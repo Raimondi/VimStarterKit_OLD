@@ -25,7 +25,7 @@ Vim Starter Kit
 		Sign off on each of the following:
 		: You can use vimoutliner's checkbox feature (<leader>cb and
 		: <leader>cx) to add a checkbox and tick it.
-			--prefix=/usr
+			--prefix=/usr/local
 			--localstatedir=/var/lib/vim
 			--mandir=/usr/share/man
 			--with-compiledby=VimStarterKit
