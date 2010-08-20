@@ -1,0 +1,33 @@
+#!/bin/sh
+
+rcs="vimrc
+gvimrc"
+
+# Overwrite only symbolic links.
+for dot in "vim" $rcs
+do
+  if [[ ! -h ~/.$dot && -e ~/.$dot ]]; then
+    echo "\"~/.$dot\" already exists and it is not a symbolic link, aborting."
+    echo "Rename or remove \"~/.$dot\" and try again. "
+    exit 2
+  fi
+done
+
+# If there is an argument, try to use it.
+if [[ $# -eq 0 ]]; then
+  path=`dirname "$(readlink -f "$0")"`
+elif [[ -d "$1" ]]; then
+  path=$1
+else
+  echo "Wrong argument: $*"
+  exit 1
+fi
+
+# Create symbolic links.
+ln -sfn "$path" "$HOME/.vim"
+for rc in $rcs
+do
+  ln -sfn "$path/$rc" "$HOME/.$rc"
+done
+
+echo "Vim will use your config files from \"$path\" now, happy vimming!"
