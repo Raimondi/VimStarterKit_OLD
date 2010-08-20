@@ -75,8 +75,8 @@ set number " Display line numbers at left of screen
 set visualbell " Flash the screen instead of beeping on errors
 set t_vb= " And then disable even the flashing
 set mouse=a " Enable mouse usage (all modes) in terminals
-" Quickly time out on keycodes, but never time out on mappings
-set notimeout ttimeout ttimeoutlen=200
+" Quickly time out on keycodes
+set timeout ttimeout ttimeoutlen=200
 
 " Indentation Options:
 set tabstop=8 " NEVER change this!
@@ -87,10 +87,6 @@ set expandtab " Even when pressing <Tab>
 " Persistent undo:
 if has('persistent_undo')
     set undofile
-endif
-
-if has('gui_macvim')
-  set fuoptions=maxvert,maxhorz " Full-screen mode uses the full screen
 endif
 
 """""""
@@ -130,10 +126,10 @@ if has("autocmd")
 
     " Enable omni-completion by default
     if has("autocmd") && exists("+omnifunc")
-        autocmd Filetype *
-                \   if &omnifunc == "" |
-                \       setlocal omnifunc=syntaxcomplete#Complete |
-                \   endif
+      autocmd Filetype *
+              \   if &omnifunc == "" |
+              \       setlocal omnifunc=syntaxcomplete#Complete |
+              \   endif
     endif
 
     " Enable extended % matching
@@ -151,9 +147,9 @@ endif
 """"""""""""
 "
 function! MyFoldText()
-    let line = getline(v:foldstart)
-    let sub = substitute(line, '/\*\|\*/\|{{{\d\=', '', 'g')
-    return v:folddashes . sub
+  let line = getline(v:foldstart)
+  let sub = substitute(line, '/\*\|\*/\|{{{\d\=', '', 'g')
+  return v:folddashes . sub
 endfunction
 
 """""""""""""""""""
