@@ -101,21 +101,26 @@ endfunction " }}}1
 " For each directory in rtp, check for a subdirectory named dir.  If it
 " exists, add all subdirectories of that subdirectory to the rtp, immediately
 " after the original directory.  If no argument is given, 'bundle' is used.
-" Repeated calls with the same arguments are ignored.
+" Repeated calls with the same arguments are ignored.  Multiple arguments can
+" be used.
 function! pathogen#runtime_append_all_bundles(...) " {{{1
   let sep = pathogen#separator()
-  let name = a:0 ? a:1 : 'bundle'
-  if "\n".s:done_bundles =~# "\\M\n".name."\n"
-    return ""
-  endif
-  let s:done_bundles .= name . "\n"
+  let names = a:0 ? a:000 : [ 'bundle' ]
+  echom string(names)
   let list = []
-  for dir in pathogen#split(&rtp)
-    if dir =~# '\<after$'
-      let list +=  pathogen#glob_directories(substitute(dir,'after$',name,'').sep.'*[^~]'.sep.'after') + [dir]
-    else
-      let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+  for name in names
+    if "\n".s:done_bundles =~# "\\M\n".name."\n"
+      "return ""
+      continue
     endif
+    let s:done_bundles .= name . "\n"
+    for dir in pathogen#split(&rtp)
+      if dir =~# '\<after$'
+        let list +=  pathogen#glob_directories(substitute(dir,'after$',name,'').sep.'*[^~]'.sep.'after') + [dir]
+      else
+        let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+      endif
+    endfor
   endfor
   call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
