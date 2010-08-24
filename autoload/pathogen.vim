@@ -106,7 +106,6 @@ endfunction " }}}1
 function! pathogen#runtime_append_all_bundles(...) " {{{1
   let sep = pathogen#separator()
   let names = a:0 ? a:000 : [ 'bundle' ]
-  echom string(names)
   let list = []
   for name in names
     if "\n".s:done_bundles =~# "\\M\n".name."\n"
