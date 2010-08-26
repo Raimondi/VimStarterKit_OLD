@@ -129,6 +129,38 @@ endfunction
 let s:done_bundles = ''
 " }}}1
 
+" Takes an argument that can be 0 (all), 1 (enabled) or -1 (disabled) and returns a
+" list of the plugins contained in every "bundle" dir, filtered according to
+" the given argument.
+" This asumes append_all_bundles() has been already called and
+" g:pathogen_disabled is set, don't know if that's right.
+function! pathogen#list_plugins(arg) " {{{1
+  let sep = pathogen#separator()
+  let list = []
+  for name in split(s:done_bundles,"\n")
+    for dir in pathogen#split(&rtp)
+      if dir !~# '\<after$'
+        let list +=  pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+      endif
+    endfor
+  endfor
+  if a:arg == 0 && type(a:arg) != 1
+    return list
+  elseif a:arg == 1
+    return filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
+  elseif a:arg == -1
+    return filter(list , ' pathogen#is_disabled_plugin(v:val)') " remove enabled plugin directories from the list
+  else
+    echoe 'Something is wrong with this argument: '.a:arg
+    return ''
+  endif
+endfunction "}}}1
+
+" Returns a list of all "bundle" dirs.
+function! pathogen#list_bundle_dirs() " {{{1
+  return split(s:done_bundles,"\n")
+endfunction " }}}1
+
 " check if plugin is disabled of not
 function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
