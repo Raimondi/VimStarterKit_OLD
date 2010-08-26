@@ -121,7 +121,7 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
       endif
     endfor
   endfor
-  call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list
+  call filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
   return 1
 endfunction
@@ -130,13 +130,12 @@ let s:done_bundles = ''
 " }}}1
 
 " check if plugin is disabled of not
-function! s:IsDisabledPlugin(path) " {{{
+function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
   return count(g:pathogen_disabled, plugname,1)
-endfunction
-" }}}
+endfunction " }}}1
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
 function! pathogen#helptags() " {{{1
