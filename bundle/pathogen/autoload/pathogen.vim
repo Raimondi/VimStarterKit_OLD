@@ -101,23 +101,27 @@ endfunction " }}}1
 " For each directory in rtp, check for a subdirectory named dir.  If it
 " exists, add all subdirectories of that subdirectory to the rtp, immediately
 " after the original directory.  If no argument is given, 'bundle' is used.
-" Repeated calls with the same arguments are ignored.
+" Repeated calls with the same arguments are ignored.  Multiple arguments can
+" be used.
 function! pathogen#runtime_append_all_bundles(...) " {{{1
   let sep = pathogen#separator()
-  let name = a:0 ? a:1 : 'bundle'
-  if "\n".s:done_bundles =~# "\\M\n".name."\n"
-    return ""
-  endif
-  let s:done_bundles .= name . "\n"
+  let names = a:0 ? a:000 : [ 'bundle' ]
   let list = []
-  for dir in pathogen#split(&rtp)
-    if dir =~# '\<after$'
-      let list +=  pathogen#glob_directories(substitute(dir,'after$',name,'').sep.'*[^~]'.sep.'after') + [dir]
-    else
-      let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+  for name in names
+    if "\n".s:done_bundles =~# "\\M\n".name."\n"
+      "return ""
+      continue
     endif
+    let s:done_bundles .= name . "\n"
+    for dir in pathogen#split(&rtp)
+      if dir =~# '\<after$'
+        let list +=  pathogen#glob_directories(substitute(dir,'after$',name,'').sep.'*[^~]'.sep.'after') + [dir]
+      else
+        let list +=  [dir] + pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+      endif
+    endfor
   endfor
-  call filter(list , ' !s:IsDisabledPlugin(v:val)') " remove disabled plugin directory from the list
+  call filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
   return 1
 endfunction
@@ -125,14 +129,45 @@ endfunction
 let s:done_bundles = ''
 " }}}1
 
+" Takes an argument that can be 0 (all), 1 (enabled) or -1 (disabled) and returns a
+" list of the plugins contained in every "bundle" dir, filtered according to
+" the given argument.
+" This asumes append_all_bundles() has been already called and
+" g:pathogen_disabled is set, don't know if that's right.
+function! pathogen#list_plugins(arg) " {{{1
+  let sep = pathogen#separator()
+  let list = []
+  for name in split(s:done_bundles,"\n")
+    for dir in pathogen#split(&rtp)
+      if dir !~# '\<after$'
+        let list +=  pathogen#glob_directories(dir.sep.name.sep.'*[^~]')
+      endif
+    endfor
+  endfor
+  if a:arg == 0 && type(a:arg) != 1
+    return list
+  elseif a:arg == 1
+    return filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
+  elseif a:arg == -1
+    return filter(list , ' pathogen#is_disabled_plugin(v:val)') " remove enabled plugin directories from the list
+  else
+    echoe 'Something is wrong with this argument: '.a:arg
+    return ''
+  endif
+endfunction "}}}1
+
+" Returns a list of all "bundle" dirs.
+function! pathogen#list_bundle_dirs() " {{{1
+  return split(s:done_bundles,"\n")
+endfunction " }}}1
+
 " check if plugin is disabled of not
-function! s:IsDisabledPlugin(path) " {{{
+function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
   return count(g:pathogen_disabled, plugname,1)
-endfunction
-" }}}
+endfunction " }}}1
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
 function! pathogen#helptags() " {{{1
