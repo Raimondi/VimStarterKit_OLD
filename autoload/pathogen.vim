@@ -85,6 +85,55 @@ function! pathogen#glob_directories(pattern) abort " {{{1
   return filter(pathogen#glob(a:pattern),'isdirectory(v:val)')
 endfunction "}}}1
 
+" parse all bundled_plugin files in &rtp
+" NOTE: This (re)sets g:pathogen_disabled
+function! pathogen#parse_bundled_plugins_files()
+  " set of 'bundled_plugins' files in root of runtime-path entries
+  " can have more than one, but most typically expected to be a single entry
+  " as ~/.vim/bundled_plugins
+  let bpfs = filter(map(pathogen#split(&rtp), 'findfile("bundled_plugins", v:val)'), 'len(v:val) != 0')
+
+  let g:pathogen_disabled = []
+  let bundles = {'bundles' : {}, 'plugins' : {}}
+  for bpf in bpfs
+    let bundled_plugins = readfile(bpf)
+
+    let path = ''
+    for line in bundled_plugins
+      " skip blank lines
+      if line =~ '^\s*$'
+        continue
+      endif
+      " capture paths as new bundles
+      if line =~ ':\s*$'
+        let path = line
+        if has_key(bundles, path) == 0
+          let bundles['bundles'][path] = {}
+        endif
+        continue
+      endif
+      " collect this plugin in the extant bundle
+      let plugin = tolower(line)
+      let status = 1
+      if plugin =~ '^\s*-'
+        let status = 0
+      endif
+      let plugin = substitute(plugin, '^\s*-\?\s*', '', '')
+      if status == 0
+        call add(g:pathogen_disabled, plugin)
+      endif
+      let bundles['bundles'][path][plugin] = status
+      let bundles['plugins'][plugin] = status
+    endfor
+  endfor
+  return bundles
+endfunction
+
+
+"""""""""""""
+" Public API
+"""""""""""""
+
 " Prepend all subdirectories of path to the rtp, and append all after
 " directories in those subdirectories.
 function! pathogen#runtime_prepend_subdirectories(path) " {{{1
@@ -107,6 +156,7 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
   let sep = pathogen#separator()
   let names = a:0 ? a:000 : [ 'bundle' ]
   let list = []
+  call pathogen#parse_bundled_plugins_files()
   for name in names
     if "\n".s:done_bundles =~# "\\M\n".name."\n"
       "return ""
