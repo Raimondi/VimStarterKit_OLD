@@ -94,11 +94,10 @@ function! pathogen#parse_bundled_plugins_files()
   let bpfs = filter(map(pathogen#split(&rtp), 'findfile("bundled_plugins", v:val)'), 'len(v:val) != 0')
 
   let g:pathogen_disabled = []
-  let bundles = {'bundles' : {}, 'plugins' : {}}
   for bpf in bpfs
     let bundled_plugins = readfile(bpf)
 
-    let path = ''
+    let bundle = ''
     for line in bundled_plugins
       " skip blank lines
       if line =~ '^\s*$'
@@ -106,10 +105,7 @@ function! pathogen#parse_bundled_plugins_files()
       endif
       " capture paths as new bundles
       if line =~ ':\s*$'
-        let path = line
-        if has_key(bundles, path) == 0
-          let bundles['bundles'][path] = {}
-        endif
+        let bundle = substitute(line, ':\s*$', '', '')
         continue
       endif
       " collect this plugin in the extant bundle
@@ -122,17 +118,70 @@ function! pathogen#parse_bundled_plugins_files()
       if status == 0
         call add(g:pathogen_disabled, plugin)
       endif
-      let bundles['bundles'][path][plugin] = status
-      let bundles['plugins'][plugin] = status
     endfor
   endfor
-  return bundles
+  let g:pathogen_disabled = pathogen#uniq(g:pathogen_disabled)
 endfunction
 
+" For saving bundle_plugin data, pick a single canonical bundled_plugin file,
+" unless already specified by user.
 
-"""""""""""""
-" Public API
-"""""""""""""
+let s:platform_vimfiles = '$HOME/.vim'
+if has('win32') || has('dos32') || has('win16') || has('dos16') || has('win95')
+  let s:platform_vimfiles = '$HOME/vimfiles'
+endif
+
+if !exists('g:bundled_plugin')
+  let g:bundled_plugin = fnameescape(expand(s:platform_vimfiles . '/bundled_plugins'))
+endif
+
+function! pathogen#list_bundle_plugins(bnd)
+  let plugins = []
+  for plg in pathogen#list_plugins(0)
+    if match(fnamemodify(plg, ':h'), a:bnd . '$') != -1
+      call add(plugins, tolower(fnamemodify(plg, ':t')))
+    endif
+  endfor
+  return pathogen#uniq(plugins)
+endfunction
+
+" write plugin information to bundled_plugin file
+function! pathogen#save_bundled_plugin_file()
+  let plugins = []
+  for bnd in pathogen#list_bundle_dirs()
+    call add(plugins, bnd . ':')
+    for plg in pathogen#list_bundle_plugins(bnd)
+      let status = ' '
+      if pathogen#is_disabled_plugin(plg)
+        let status = '-'
+      endif
+      call add(plugins, status . plg)
+    endfor
+  endfor
+  echo "Saving " . g:bundled_plugin
+  if writefile(plugins, g:bundled_plugin) == -1
+    echoe "Couldn't save " . g:bundled_plugin . " file!"
+  endif
+endfunction
+
+au VimLeave * call pathogen#save_bundled_plugin_file()
+
+function! pathogen#enable_plugin(plugin)
+  let plugin = tolower(a:plugin)
+  let idx = index(g:pathogen_disabled, plugin)
+  if idx != -1
+    call remove(g:pathogen_disabled, idx)
+    call pathogen#save_bundled_plugin_file()
+  endif
+endfunction
+
+function! pathogen#disable_plugin(plugin)
+  let plugin = tolower(a:plugin)
+  if index(g:pathogen_disabled, plugin) == -1
+    call add(g:pathogen_disabled, plugin)
+    call pathogen#save_bundled_plugin_file()
+  endif
+endfunction
 
 " Prepend all subdirectories of path to the rtp, and append all after
 " directories in those subdirectories.
@@ -183,7 +232,7 @@ let s:done_bundles = ''
 " list of the plugins contained in every "bundle" dir, filtered according to
 " the given argument.
 " This asumes append_all_bundles() has been already called and
-" g:pathogen_disabled is set, don't know if that's right.
+" g:pathogen_disabled is set.
 function! pathogen#list_plugins(arg) " {{{1
   let sep = pathogen#separator()
   let list = []
@@ -216,7 +265,7 @@ function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-  return count(g:pathogen_disabled, plugname,1)
+  return count(g:pathogen_disabled, plugname, 1)
 endfunction " }}}1
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
