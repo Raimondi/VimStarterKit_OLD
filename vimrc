@@ -2,11 +2,12 @@
 filetype off
 
 " Let pathogen perform its magic:
-exec 'set runtimepath+=' . expand('~/.vim/bundle/pathogen')
+"exec 'set runtimepath+=' . expand('~/.vim/bundle/pathogen')
+set runtimepath+=~/.vim/bundle/pathogen
 
 " Disabled plugins:
 let pathogen_disabled = []
-" To enable one of this plugins, just comment out the corresponding line:
+" To enable any of this plugins, just comment out the corresponding line:
 " -CSApprox
 let pathogen_disabled += ['csapprox']
 " -NERDCommenter
