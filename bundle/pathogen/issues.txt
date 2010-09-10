@@ -1,0 +1,13 @@
+The bundled_plugins file will contain bundle subdirectories in the
+parent 'bundle' dir, as in:
+
+  bundle/local:
+    foo
+  bundle/shared:
+    bar
+  bundle:
+    local
+    shared
+    baz
+
+-----------------------------------------------------------------------------

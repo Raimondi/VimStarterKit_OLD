@@ -1,0 +1,162 @@
+Pathogen Use Cases
+==================
+
+The various ways in which a user will interact with pathogen.
+
+//{{{1
+Installing Pathogen
+-------------------
+
+This step is assuming that the user completes a series of manual steps
+to install pathogen and configures Vim properly to use it.
+
+//{{{2
+Before
+~~~~~~
+
+* ~/.vimrc: no mention of runtime_append_all_bundles()
+* ~/.vim/bundle/: does not exist
+* ~/.vim/bundled_plugins: does not exist
+
+//{{{2
+Steps
+~~~~~
+
+* download pathogen
+* install it in ~/.vim/autoload/
+* modify the ~/.vimrc to have the correct filetype call order and the
+  call to runtime_append_all_bundles().
+* create the ~/.vim/bundle directory.
+
+//{{{2
+After
+~~~~~
+
+* ~/.vimrc: contains lines to load pathogen at runtime, including a
+  call to runtime_append_all_bundles()
+* ~/.vim/bundle/: exists and is empty if this is the first time
+  pathogen has ever been installed for this user.
+* ~/.vim/bundled_plugins: does not exist
+
+
+//{{{1
+Adding a Plugin
+---------------
+
+The user is responsible for locating, downloading and installing the
+plugin into their ~/.vim/bundle/ directory.
+
+//{{{2
+Before
+~~~~~~
+
+* ~/.vim/bundle/: does not contain the to-be-installed plugin
+* ~/.vim/bundled_plugins: may not exist; does not (may) mention the
+  to-be-installed plugin.
+
+//{{{2
+Steps
+~~~~~
+
+* download new plugin
+* install it in ~/.vim/bundle/<new-plugin-dir>/
+* restart Vim
+
+//{{{2
+After
+~~~~~
+
+* ~/.vim/bundle/: contains directory for new plugin
+* ~/.vim/bundled_plugins: exists and mentions the new plugin as being
+  'enabled'
+
+
+//{{{1
+Disabling a Plugin
+------------------
+
+//{{{2
+Before
+~~~~~~
+
+* ~/.vim/bundle/: exists and contains plugin to be disabled
+* ~/.vim/bundled_plugins: exists and contains plugin to be disabled
+
+//{{{2
+Steps
+~~~~~
+
+* from Vim, issue the command: pathogen#disable_plugin('plugin-name')
+
+//{{{2
+After
+~~~~~
+
+* ~/.vim/bundle/: unchanged
+* ~/.vim/bundled_plugins: exists and mentions the new plugin as being
+  'disabled'
+
+
+//{{{1
+Enabling a Plugin
+-----------------
+
+//{{{2
+Before
+~~~~~~
+
+* ~/.vim/bundle/: exists and contains plugin to be enabled
+* ~/.vim/bundled_plugins: exists and contains plugin to be enabled
+
+//{{{2
+Steps
+~~~~~
+
+* from Vim, issue the command: pathogen#enable_plugin('plugin-name')
+
+//{{{2
+After
+~~~~~
+
+* ~/.vim/bundle/: unchanged
+* ~/.vim/bundled_plugins: exists and mentions the new plugin as being
+  'enabled'
+
+
+//{{{1
+Removing a Plugin
+-----------------
+
+//{{{1
+Moving To a Multi-Bundle Setup
+------------------------------
+
+//{{{1
+Adding a Bundle
+---------------
+
+//{{{1
+Adding a Plugin To a Bundle
+---------------------------
+
+//{{{1
+Disabling a Plugin Within a Bundle
+----------------------------------
+
+//{{{1
+Enabling a Plugin Within a Bundle
+---------------------------------
+
+//{{{1
+Removing a Plugin From a Bundle
+-------------------------------
+
+//{{{1
+Removing a Bundle
+-----------------
+
+//{{{1
+Uninstalling Pathogen
+---------------------
+
+// vim: fdm=marker fdt=UCFoldText()
