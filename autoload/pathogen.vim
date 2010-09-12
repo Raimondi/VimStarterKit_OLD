@@ -11,8 +11,8 @@ if exists("g:loaded_pathogen") || &cp
 endif
 let g:loaded_pathogen = 1
 
-if !exists("g:pathogen_disabled")
-  let g:pathogen_disabled = []
+if !exists("s:pathogen_disabled")
+  let s:pathogen_disabled = []
 endif
 
 " Split a path into a list.
@@ -86,14 +86,14 @@ function! pathogen#glob_directories(pattern) abort " {{{1
 endfunction "}}}1
 
 " parse all bundled_plugin files in &rtp
-" NOTE: This (re)sets g:pathogen_disabled
-function! pathogen#parse_bundled_plugins_files()
+" NOTE: This (re)sets s:pathogen_disabled
+function! pathogen#parse_bundled_plugins_files() " {{{1
   " set of 'bundled_plugins' files in root of runtime-path entries
   " can have more than one, but most typically expected to be a single entry
   " as ~/.vim/bundled_plugins
   let bpfs = filter(map(pathogen#split(&rtp), 'findfile("bundled_plugins", v:val)'), 'len(v:val) != 0')
 
-  let g:pathogen_disabled = []
+  let s:pathogen_disabled = []
   for bpf in bpfs
     let bundled_plugins = readfile(bpf)
 
@@ -116,24 +116,13 @@ function! pathogen#parse_bundled_plugins_files()
       endif
       let plugin = substitute(plugin, '^\s*-\?\s*', '', '')
       if status == 0
-        call add(g:pathogen_disabled, plugin)
+        call add(s:pathogen_disabled, plugin)
       endif
     endfor
   endfor
-  let g:pathogen_disabled = pathogen#uniq(g:pathogen_disabled)
-endfunction
 
-" For saving bundle_plugin data, pick a single canonical bundled_plugin file,
-" unless already specified by user.
-
-let s:platform_vimfiles = '$HOME/.vim'
-if has('win32') || has('dos32') || has('win16') || has('dos16') || has('win95')
-  let s:platform_vimfiles = '$HOME/vimfiles'
-endif
-
-if !exists('g:bundled_plugin')
-  let g:bundled_plugin = fnameescape(expand(s:platform_vimfiles . '/bundled_plugins'))
-endif
+  let s:pathogen_disabled = pathogen#uniq(s:pathogen_disabled)
+endfunction " }}}1
 
 function! pathogen#list_bundle_plugins(bnd)
   let plugins = []
@@ -168,17 +157,17 @@ au VimLeave * call pathogen#save_bundled_plugin_file()
 
 function! pathogen#enable_plugin(plugin)
   let plugin = tolower(a:plugin)
-  let idx = index(g:pathogen_disabled, plugin)
+  let idx = index(s:pathogen_disabled, plugin)
   if idx != -1
-    call remove(g:pathogen_disabled, idx)
+    call remove(s:pathogen_disabled, idx)
     call pathogen#save_bundled_plugin_file()
   endif
 endfunction
 
 function! pathogen#disable_plugin(plugin)
   let plugin = tolower(a:plugin)
-  if index(g:pathogen_disabled, plugin) == -1
-    call add(g:pathogen_disabled, plugin)
+  if index(s:pathogen_disabled, plugin) == -1
+    call add(s:pathogen_disabled, plugin)
     call pathogen#save_bundled_plugin_file()
   endif
 endfunction
@@ -232,7 +221,7 @@ let s:done_bundles = ''
 " list of the plugins contained in every "bundle" dir, filtered according to
 " the given argument.
 " This asumes append_all_bundles() has been already called and
-" g:pathogen_disabled is set.
+" s:pathogen_disabled is set.
 function! pathogen#list_plugins(arg) " {{{1
   let sep = pathogen#separator()
   let list = []
@@ -265,7 +254,7 @@ function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-  return count(g:pathogen_disabled, plugname, 1)
+  return count(s:pathogen_disabled, plugname, 1)
 endfunction " }}}1
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
