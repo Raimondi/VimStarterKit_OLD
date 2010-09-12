@@ -15,6 +15,20 @@ if !exists("s:pathogen_disabled")
   let s:pathogen_disabled = []
 endif
 
+" For saving bundle_plugin data, pick a single canonical bundled_plugin file,
+" unless already specified by user.
+
+let s:platform_vimfiles = '$HOME/.vim'
+if has('win32') || has('dos32') || has('win16') || has('dos16') || has('win95')
+  let s:platform_vimfiles = '$HOME/vimfiles'
+endif
+
+if !exists('g:bundled_plugin')
+  let g:bundled_plugin = fnameescape(expand(s:platform_vimfiles . '/bundled_plugins'))
+endif
+
+let s:done_bundles = ''
+
 " Split a path into a list.
 function! pathogen#split(path) abort " {{{1
   if type(a:path) == type([]) | return a:path | endif
@@ -83,7 +97,7 @@ endfunction "}}}1
 " Like pathogen#glob(), only limit the results to directories.
 function! pathogen#glob_directories(pattern) abort " {{{1
   return filter(pathogen#glob(a:pattern),'isdirectory(v:val)')
-endfunction "}}}1
+endfunction " }}}1
 
 " parse all bundled_plugin files in &rtp
 " NOTE: This (re)sets s:pathogen_disabled
@@ -124,7 +138,7 @@ function! pathogen#parse_bundled_plugins_files() " {{{1
   let s:pathogen_disabled = pathogen#uniq(s:pathogen_disabled)
 endfunction " }}}1
 
-function! pathogen#list_bundle_plugins(bnd)
+function! pathogen#list_bundle_plugins(bnd) " {{{1
   let plugins = []
   for plg in pathogen#list_plugins(0)
     if match(fnamemodify(plg, ':h'), a:bnd . '$') != -1
@@ -132,10 +146,10 @@ function! pathogen#list_bundle_plugins(bnd)
     endif
   endfor
   return pathogen#uniq(plugins)
-endfunction
+endfunction " }}}1
 
 " write plugin information to bundled_plugin file
-function! pathogen#save_bundled_plugin_file()
+function! pathogen#save_bundled_plugin_file() " {{{1
   let plugins = []
   for bnd in pathogen#list_bundle_dirs()
     call add(plugins, bnd . ':')
@@ -151,26 +165,26 @@ function! pathogen#save_bundled_plugin_file()
   if writefile(plugins, g:bundled_plugin) == -1
     echoe "Couldn't save " . g:bundled_plugin . " file!"
   endif
-endfunction
 
 au VimLeave * call pathogen#save_bundled_plugin_file()
+endfunction " }}}1
 
-function! pathogen#enable_plugin(plugin)
+function! pathogen#enable_plugin(plugin) " {{{1
   let plugin = tolower(a:plugin)
   let idx = index(s:pathogen_disabled, plugin)
   if idx != -1
     call remove(s:pathogen_disabled, idx)
     call pathogen#save_bundled_plugin_file()
   endif
-endfunction
+endfunction " }}}1
 
-function! pathogen#disable_plugin(plugin)
+function! pathogen#disable_plugin(plugin) " {{{1
   let plugin = tolower(a:plugin)
   if index(s:pathogen_disabled, plugin) == -1
     call add(s:pathogen_disabled, plugin)
     call pathogen#save_bundled_plugin_file()
   endif
-endfunction
+endfunction " }}}1
 
 " Prepend all subdirectories of path to the rtp, and append all after
 " directories in those subdirectories.
@@ -212,10 +226,7 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
   call filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
   return 1
-endfunction
-
-let s:done_bundles = ''
-" }}}1
+endfunction " }}}1
 
 " Takes an argument that can be 0 (all), 1 (enabled) or -1 (disabled) and returns a
 " list of the plugins contained in every "bundle" dir, filtered according to
@@ -242,14 +253,14 @@ function! pathogen#list_plugins(arg) " {{{1
     echoe 'Something is wrong with this argument: '.a:arg
     return ''
   endif
-endfunction "}}}1
+endfunction " }}}1
 
 " Returns a list of all "bundle" dirs.
 function! pathogen#list_bundle_dirs() " {{{1
   return split(s:done_bundles,"\n")
 endfunction " }}}1
 
-" check if plugin is disabled of not
+" Check if plugin is disabled of not
 function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
