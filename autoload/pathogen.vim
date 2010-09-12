@@ -279,4 +279,68 @@ function! pathogen#helptags() " {{{1
   endfor
 endfunction " }}}1
 
+" Enable/disable plugins:
+function! s:plugin(action, ...) " {{{1
+  let actions = ['enable', 'disable', 'list']
+  if  index(actions, a:action, 0, 1) == -1
+    echom 'Action not supported.'
+    return ''
+  endif
+
+  if a:action ==? actions[0]
+    if a:0 == 1
+      " Enable plugin:
+      call pathogen#enable_plugin(a:1)
+    else
+      echom 'Too many arguments.'
+    endif
+  elseif a:action ==? actions[1] && a:0 == 1
+    if a:0 == 1
+      " Disable plugin:
+      call pathogen#disable_plugin(a:1)
+    else
+      echom 'Too many arguments.'
+    endif
+  elseif a:action ==? actions[2]
+    if a:0 == 0 || (a:0 == 1 && a:1 ==? 'all')
+      " List all plugins:
+      echom 'All plugins:'
+      let list = pathogen#list_plugins(0)
+    elseif a:0 == 1 && a:1 ==? 'enabled'
+      " List enabled plugins:
+      echom 'Enabled plugins:'
+      let list = pathogen#list_plugins(1)
+    elseif a:0 == 1 && a:1 ==? 'disabled'
+      " List disabled plugins:
+      echom 'Disabled plugins:'
+      let list = pathogen#list_plugins(-1)
+    else
+      echom 'Too many arguments.'
+      return ''
+    endif
+    for p in list
+      echom p
+    endfor
+  else
+    echom 'Action not supported: ' . a:action
+  endif
+endfunction " }}}1
+
+function! s:Command_complete(ArgLead, CmdLine, CursorPos) " {{{1
+  if a:CmdLine[: a:CursorPos ] =~? '\m^\s*\S\+ \S*$'
+    return join(['enable', 'disable', 'list'], "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ e\S* \S*$'
+    return join(map(pathogen#list_plugins(-1), 'substitute(v:val, ''^.*''.pathogen#separator().''\(.\{-}\)$'',''\1'',"")'), "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ d\S* \S*$'
+    return join(map(pathogen#list_plugins(1), 'substitute(v:val, ''^.*''.pathogen#separator().''\(.\{-}\)$'',''\1'',"")'), "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ l\S* \S*$'
+    return join(['all', 'enabled', 'disabled'], "\n")
+  endif
+endfunction " }}}1
+
+
+" Use:
+" :Plugin action [argument]
+command! -bar -nargs=+ -complete=custom,<SID>Command_complete Plugin call <SID>plugin(<f-args>)
+
 " vim:set ft=vim ts=8 sw=2 sts=2:
