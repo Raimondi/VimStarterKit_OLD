@@ -11,9 +11,23 @@ if exists("g:loaded_pathogen") || &cp
 endif
 let g:loaded_pathogen = 1
 
-if !exists("g:pathogen_disabled")
-  let g:pathogen_disabled = []
+if !exists("s:pathogen_disabled")
+  let s:pathogen_disabled = []
 endif
+
+" For saving bundle_plugin data, pick a single canonical bundled_plugin file,
+" unless already specified by user.
+
+let s:platform_vimfiles = '$HOME/.vim'
+if has('win32') || has('dos32') || has('win16') || has('dos16') || has('win95')
+  let s:platform_vimfiles = '$HOME/vimfiles'
+endif
+
+if !exists('g:bundled_plugin')
+  let g:bundled_plugin = fnameescape(expand(s:platform_vimfiles . '/bundled_plugins'))
+endif
+
+let s:done_bundles = ''
 
 " Split a path into a list.
 function! pathogen#split(path) abort " {{{1
@@ -83,17 +97,17 @@ endfunction "}}}1
 " Like pathogen#glob(), only limit the results to directories.
 function! pathogen#glob_directories(pattern) abort " {{{1
   return filter(pathogen#glob(a:pattern),'isdirectory(v:val)')
-endfunction "}}}1
+endfunction " }}}1
 
 " parse all bundled_plugin files in &rtp
-" NOTE: This (re)sets g:pathogen_disabled
-function! pathogen#parse_bundled_plugins_files()
+" NOTE: This (re)sets s:pathogen_disabled
+function! pathogen#parse_bundled_plugins_files() " {{{1
   " set of 'bundled_plugins' files in root of runtime-path entries
   " can have more than one, but most typically expected to be a single entry
   " as ~/.vim/bundled_plugins
   let bpfs = filter(map(pathogen#split(&rtp), 'findfile("bundled_plugins", v:val)'), 'len(v:val) != 0')
 
-  let g:pathogen_disabled = []
+  let s:pathogen_disabled = []
   for bpf in bpfs
     let bundled_plugins = readfile(bpf)
 
@@ -116,26 +130,15 @@ function! pathogen#parse_bundled_plugins_files()
       endif
       let plugin = substitute(plugin, '^\s*-\?\s*', '', '')
       if status == 0
-        call add(g:pathogen_disabled, plugin)
+        call add(s:pathogen_disabled, plugin)
       endif
     endfor
   endfor
-  let g:pathogen_disabled = pathogen#uniq(g:pathogen_disabled)
-endfunction
 
-" For saving bundle_plugin data, pick a single canonical bundled_plugin file,
-" unless already specified by user.
+  let s:pathogen_disabled = pathogen#uniq(s:pathogen_disabled)
+endfunction " }}}1
 
-let s:platform_vimfiles = '$HOME/.vim'
-if has('win32') || has('dos32') || has('win16') || has('dos16') || has('win95')
-  let s:platform_vimfiles = '$HOME/vimfiles'
-endif
-
-if !exists('g:bundled_plugin')
-  let g:bundled_plugin = fnameescape(expand(s:platform_vimfiles . '/bundled_plugins'))
-endif
-
-function! pathogen#list_bundle_plugins(bnd)
+function! pathogen#list_bundle_plugins(bnd) " {{{1
   let plugins = []
   for plg in pathogen#list_plugins(0)
     if match(fnamemodify(plg, ':h'), a:bnd . '$') != -1
@@ -143,10 +146,10 @@ function! pathogen#list_bundle_plugins(bnd)
     endif
   endfor
   return pathogen#uniq(plugins)
-endfunction
+endfunction " }}}1
 
 " write plugin information to bundled_plugin file
-function! pathogen#save_bundled_plugin_file()
+function! pathogen#save_bundled_plugin_file() " {{{1
   let plugins = []
   for bnd in pathogen#list_bundle_dirs()
     call add(plugins, bnd . ':')
@@ -158,30 +161,28 @@ function! pathogen#save_bundled_plugin_file()
       call add(plugins, status . plg)
     endfor
   endfor
-  echo "Saving " . g:bundled_plugin
+  "echo "Saving " . g:bundled_plugin
   if writefile(plugins, g:bundled_plugin) == -1
     echoe "Couldn't save " . g:bundled_plugin . " file!"
   endif
-endfunction
+endfunction " }}}1
 
-au VimLeave * call pathogen#save_bundled_plugin_file()
-
-function! pathogen#enable_plugin(plugin)
+function! pathogen#enable_plugin(plugin) " {{{1
   let plugin = tolower(a:plugin)
-  let idx = index(g:pathogen_disabled, plugin)
+  let idx = index(s:pathogen_disabled, plugin)
   if idx != -1
-    call remove(g:pathogen_disabled, idx)
+    call remove(s:pathogen_disabled, idx)
     call pathogen#save_bundled_plugin_file()
   endif
-endfunction
+endfunction " }}}1
 
-function! pathogen#disable_plugin(plugin)
+function! pathogen#disable_plugin(plugin) " {{{1
   let plugin = tolower(a:plugin)
-  if index(g:pathogen_disabled, plugin) == -1
-    call add(g:pathogen_disabled, plugin)
+  if index(s:pathogen_disabled, plugin) == -1
+    call add(s:pathogen_disabled, plugin)
     call pathogen#save_bundled_plugin_file()
   endif
-endfunction
+endfunction " }}}1
 
 " Prepend all subdirectories of path to the rtp, and append all after
 " directories in those subdirectories.
@@ -222,17 +223,18 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
   endfor
   call filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
+  " Create bundled_plugin file if necessary.
+  if glob(g:bundled_plugin) == ''
+    call pathogen#save_bundled_plugin_file()
+  endif
   return 1
-endfunction
-
-let s:done_bundles = ''
-" }}}1
+endfunction " }}}1
 
 " Takes an argument that can be 0 (all), 1 (enabled) or -1 (disabled) and returns a
 " list of the plugins contained in every "bundle" dir, filtered according to
 " the given argument.
 " This asumes append_all_bundles() has been already called and
-" g:pathogen_disabled is set.
+" s:pathogen_disabled is set.
 function! pathogen#list_plugins(arg) " {{{1
   let sep = pathogen#separator()
   let list = []
@@ -253,19 +255,19 @@ function! pathogen#list_plugins(arg) " {{{1
     echoe 'Something is wrong with this argument: '.a:arg
     return ''
   endif
-endfunction "}}}1
+endfunction " }}}1
 
 " Returns a list of all "bundle" dirs.
 function! pathogen#list_bundle_dirs() " {{{1
   return split(s:done_bundles,"\n")
 endfunction " }}}1
 
-" check if plugin is disabled of not
+" Check if plugin is disabled of not
 function! pathogen#is_disabled_plugin(path) " {{{1
   let plugname = a:path =~# "after$"
         \ ? fnamemodify(a:path, ":h:t")
         \ : fnamemodify(a:path, ":t")
-  return count(g:pathogen_disabled, plugname, 1)
+  return count(s:pathogen_disabled, plugname, 1)
 endfunction " }}}1
 
 " Invoke :helptags on all non-$VIM doc directories in runtimepath.
@@ -276,5 +278,74 @@ function! pathogen#helptags() " {{{1
     endif
   endfor
 endfunction " }}}1
+
+" Enable/disable plugins:
+function! s:plugin(action, ...) " {{{1
+  let actions = ['enable', 'disable', 'list']
+  if  index(actions, a:action, 0, 1) == -1
+    echom 'Action not supported.'
+    return ''
+  endif
+
+  if a:action ==? actions[0]
+    if a:0 == 1
+      " Enable plugin:
+      call pathogen#enable_plugin(a:1)
+    else
+      echom 'Too many arguments.'
+    endif
+  elseif a:action ==? actions[1] && a:0 == 1
+    if a:0 == 1
+      " Disable plugin:
+      call pathogen#disable_plugin(a:1)
+    else
+      echom 'Too many arguments.'
+    endif
+  elseif a:action ==? actions[2]
+    if a:0 == 0 || (a:0 == 1 && a:1 ==? 'all')
+      " List all plugins:
+      echom 'All plugins:'
+      let list = pathogen#list_plugins(0)
+    elseif a:0 == 1 && a:1 ==? 'enabled'
+      " List enabled plugins:
+      echom 'Enabled plugins:'
+      let list = pathogen#list_plugins(1)
+    elseif a:0 == 1 && a:1 ==? 'disabled'
+      " List disabled plugins:
+      echom 'Disabled plugins:'
+      let list = pathogen#list_plugins(-1)
+    else
+      echom 'Too many arguments.'
+      return ''
+    endif
+    for p in list
+      echom p
+    endfor
+  else
+    echom 'Action not supported: ' . a:action
+  endif
+endfunction " }}}1
+
+" Provides completion for :Plugin
+function! s:Command_complete(ArgLead, CmdLine, CursorPos) " {{{1
+  if a:CmdLine[: a:CursorPos ] =~? '\m^\s*\S\+ \S*$'
+    " Complete actions:
+    return join(['enable', 'disable', 'list'], "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ e\S* \S*$'
+    " Complete enable action, list disabled plugins:
+    return join(map(pathogen#list_plugins(-1), 'substitute(v:val, ''^.*''.pathogen#separator().''\(.\{-}\)$'',''\1'',"")'), "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ d\S* \S*$'
+    " Complete disable action, list enabled plugins:
+    return join(map(pathogen#list_plugins(1), 'substitute(v:val, ''^.*''.pathogen#separator().''\(.\{-}\)$'',''\1'',"")'), "\n")
+  elseif a:CmdLine[: a:CursorPos ] =~? '^\m\s*\S\+ l\S* \S*$'
+    " Complete list action, list options:
+    return join(['all', 'enabled', 'disabled'], "\n")
+  endif
+endfunction " }}}1
+
+
+" Use:
+" :Plugin action [argument]
+command! -bar -nargs=+ -complete=custom,<SID>Command_complete Plugin call <SID>plugin(<f-args>)
 
 " vim:set ft=vim ts=8 sw=2 sts=2:
