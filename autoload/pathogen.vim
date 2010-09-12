@@ -161,12 +161,10 @@ function! pathogen#save_bundled_plugin_file() " {{{1
       call add(plugins, status . plg)
     endfor
   endfor
-  echo "Saving " . g:bundled_plugin
+  "echo "Saving " . g:bundled_plugin
   if writefile(plugins, g:bundled_plugin) == -1
     echoe "Couldn't save " . g:bundled_plugin . " file!"
   endif
-
-au VimLeave * call pathogen#save_bundled_plugin_file()
 endfunction " }}}1
 
 function! pathogen#enable_plugin(plugin) " {{{1
@@ -225,6 +223,10 @@ function! pathogen#runtime_append_all_bundles(...) " {{{1
   endfor
   call filter(list , ' !pathogen#is_disabled_plugin(v:val)') " remove disabled plugin directories from the list
   let &rtp = pathogen#join(pathogen#uniq(list))
+  " Create bundled_plugin file if necessary.
+  if glob(g:bundled_plugin) == ''
+    call pathogen#save_bundled_plugin_file()
+  endif
   return 1
 endfunction " }}}1
 
